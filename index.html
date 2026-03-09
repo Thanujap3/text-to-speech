@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text-to-Speech NLP API</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .control-group label {
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .control-group input {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .control-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .value-display {
+            font-size: 12px;
+            color: #667eea;
+            margin-top: 4px;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .output-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .output-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .output-box {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 13px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .output-label {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .status.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            display: block;
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-size: 14px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .tab-btn {
+            padding: 10px 15px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            color: #999;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .controls {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎙️ Text-to-Speech NLP</h1>
+            <p>Convert text to speech with advanced NLP processing</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('convert')">Convert</button>
+            <button class="tab-btn" onclick="switchTab('preprocess')">Preprocess</button>
+            <button class="tab-btn" onclick="switchTab('about')">About</button>
+        </div>
+
+        <!-- Convert Tab -->
+        <div id="convert" class="tab-content active">
+            <form id="ttsForm">
+                <div class="form-group">
+                    <label for="textInput">Enter Text to Convert</label>
+                    <textarea id="textInput" placeholder="Type your text here..." required></textarea>
+                </div>
+
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="rateInput">Speed (Rate)</label>
+                        <input type="range" id="rateInput" min="50" max="300" value="150">
+                        <div class="value-display"><span id="rateValue">150</span> words/min</div>
+                    </div>
+                    <div class="control-group">
+                        <label for="volumeInput">Volume</label>
+                        <input type="range" id="volumeInput" min="0" max="1" step="0.1" value="1">
+                        <div class="value-display"><span id="volumeValue">1.0</span> (0-1)</div>
+                    </div>
+                </div>
+
+                <div class="status" id="status"></div>
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <span>Processing...</span>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn-primary">🔊 Speak</button>
+                    <button type="button" class="btn-secondary" onclick="clearForm()">Clear</button>
+                </div>
+            </form>
+
+            <div class="output-section" id="outputSection" style="display: none;">
+                <h3>Processing Result</h3>
+                <div class="output-box">
+                    <div class="output-label">Original Text</div>
+                    <div id="originalText"></div>
+                </div>
+                <div class="output-box">
+                    <div class="output-label">Processed Text</div>
+                    <div id="processedText"></div>
+                </div>
+                <div class="output-box">
+                    <div class="output-label">Tokens</div>
+                    <div id="tokens"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preprocess Tab -->
+        <div id="preprocess" class="tab-content">
+            <form id="preprocessForm">
+                <div class="form-group">
+                    <label for="preprocessInput">Text to Preprocess</label>
+                    <textarea id="preprocessInput" placeholder="Type your text here..." required></textarea>
+                </div>
+
+                <div class="status" id="preprocessStatus"></div>
+                <div class="loading" id="preprocessLoading">
+                    <div class="spinner"></div>
+                    <span>Processing...</span>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn-primary">⚙️ Preprocess</button>
+                    <button type="button" class="btn-secondary" onclick="clearPreprocess()">Clear</button>
+                </div>
+            </form>
+
+            <div class="output-section" id="preprocessOutputSection" style="display: none;">
+                <h3>Preprocessing Result</h3>
+                <div class="output-box">
+                    <div class="output-label">Cleaned Text</div>
+                    <div id="cleanedText"></div>
+                </div>
+                <div class="output-box">
+                    <div class="output-label">Tokens</div>
+                    <div id="preprocessTokens"></div>
+                </div>
+                <div class="output-box">
+                    <div class="output-label">Statistics</div>
+                    <div id="stats"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Tab -->
+        <div id="about" class="tab-content">
+            <div class="output-box" style="background: white; border: none; padding: 0;">
+                <h3 style="margin-bottom: 15px;">About This API</h3>
+                <p style="margin-bottom: 15px;">
+                    This is a complete Text-to-Speech (TTS) system with Natural Language Processing (NLP) capabilities.
+                </p>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px; color: #667eea;">Features:</h4>
+                <ul style="margin-left: 20px; margin-bottom: 15px;">
+                    <li>✓ Advanced text preprocessing</li>
+                    <li>✓ Tokenization and cleaning</li>
+                    <li>✓ Real-time speech synthesis</li>
+                    <li>✓ Adjustable speed and volume</li>
+                    <li>✓ REST API endpoints</li>
+                </ul>
+
+                <h4 style="margin-top: 20px; margin-bottom: 10px; color: #667eea;">API Endpoints:</h4>
+                <div style="background: #f9f9f9; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 12px;">
+                    POST /api/synthesize - Full synthesis<br>
+                    POST /api/preprocess - Preprocessing only<br>
+                    POST /api/pipeline - Complete pipeline<br>
+                    GET /api/health - Health check<br>
+                    GET /api/info - API info
+                </div>
+
+                <p style="margin-top: 20px; font-size: 12px; color: #999;">
+                    Version: 1.0.0 | Built with Flask + pyttsx3 | 2026
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab Switching
+        function switchTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-content');
+            const btns = document.querySelectorAll('.tab-btn');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            btns.forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Range input displays
+        document.getElementById('rateInput').addEventListener('input', (e) => {
+            document.getElementById('rateValue').textContent = e.target.value;
+        });
+
+        document.getElementById('volumeInput').addEventListener('input', (e) => {
+            document.getElementById('volumeValue').textContent = e.target.value;
+        });
+
+        // Clear Form
+        function clearForm() {
+            document.getElementById('ttsForm').reset();
+            document.getElementById('outputSection').style.display = 'none';
+            document.getElementById('status').className = 'status';
+            document.getElementById('rateValue').textContent = '150';
+            document.getElementById('volumeValue').textContent = '1.0';
+        }
+
+        function clearPreprocess() {
+            document.getElementById('preprocessForm').reset();
+            document.getElementById('preprocessOutputSection').style.display = 'none';
+            document.getElementById('preprocessStatus').className = 'status';
+        }
+
+        // Show Status Message
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+        }
+
+        // TTS Form Handler
+        document.getElementById('ttsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const text = document.getElementById('textInput').value.trim();
+            const rate = document.getElementById('rateInput').value;
+            const volume = document.getElementById('volumeInput').value;
+            
+            if (!text) {
+                showStatus('status', 'Please enter text', 'error');
+                return;
+            }
+
+            document.getElementById('loading').classList.add('active');
+            showStatus('status', '', 'info');
+
+            try {
+                const response = await fetch('/api/pipeline', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, rate: parseInt(rate), volume: parseFloat(volume) })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('originalText').textContent = data.input_text;
+                    document.getElementById('processedText').textContent = data.cleaned_text;
+                    document.getElementById('tokens').textContent = JSON.stringify(data.tokens, null, 2);
+                    document.getElementById('outputSection').style.display = 'block';
+                    showStatus('status', `✓ ${data.message}`, 'success');
+                } else {
+                    showStatus('status', `✗ Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus('status', `✗ Network error: ${error.message}`, 'error');
+            } finally {
+                document.getElementById('loading').classList.remove('active');
+            }
+        });
+
+        // Preprocess Form Handler
+        document.getElementById('preprocessForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const text = document.getElementById('preprocessInput').value.trim();
+            
+            if (!text) {
+                showStatus('preprocessStatus', 'Please enter text', 'error');
+                return;
+            }
+
+            document.getElementById('preprocessLoading').classList.add('active');
+            showStatus('preprocessStatus', '', 'info');
+
+            try {
+                const response = await fetch('/api/preprocess', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('cleanedText').textContent = data.cleaned_text;
+                    document.getElementById('preprocessTokens').textContent = JSON.stringify(data.tokens, null, 2);
+                    document.getElementById('stats').textContent = 
+                        `Tokens: ${data.token_count}\n` +
+                        `Original Length: ${data.original_length}\n` +
+                        `Cleaned Length: ${data.cleaned_length}`;
+                    document.getElementById('preprocessOutputSection').style.display = 'block';
+                    showStatus('preprocessStatus', '✓ Text preprocessed successfully', 'success');
+                } else {
+                    showStatus('preprocessStatus', `✗ Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus('preprocessStatus', `✗ Network error: ${error.message}`, 'error');
+            } finally {
+                document.getElementById('preprocessLoading').classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
